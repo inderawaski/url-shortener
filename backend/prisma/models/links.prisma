@@ -1,0 +1,8 @@
+model Link { 
+  id    Uuid     @id @default(autoincrement()) 
+  slug  String  @unique
+  destinationUrl String
+  clickCount Int
+  createdAt DateTime
+  updatedAt DateTime
+} 

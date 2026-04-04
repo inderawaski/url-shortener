@@ -1,0 +1,7 @@
+model Click { 
+  id        BigInt     @id @default(autoincrement()) 
+  link     Link
+  Timestamp DateTime
+  ipAddress String
+  userAgent String
+} 
