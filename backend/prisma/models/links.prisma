@@ -1,8 +1,12 @@
-model Link { 
-  id    Uuid     @id @default(autoincrement()) 
-  slug  String  @unique
-  destinationUrl String
-  clickCount Int
-  createdAt DateTime
-  updatedAt DateTime
-} 
+model Link {
+  id              String   @id @default(uuid())
+  slug            String   @unique
+  destinationUrl  String   @map("destination_url")
+  clickCount      Int      @default(0) @map("click_count")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  clicks Click[]
+
+  @@map("links")
+}

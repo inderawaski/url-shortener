@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { join } from 'node:path'
 import AutoLoad, { AutoloadPluginOptions } from '@fastify/autoload'
 import { FastifyPluginAsync, FastifyServerOptions } from 'fastify'
@@ -31,7 +32,8 @@ const app: FastifyPluginAsync<AppOptions> = async (
   // eslint-disable-next-line no-void
   void fastify.register(AutoLoad, {
     dir: join(__dirname, 'routes'),
-    options: opts
+    options: opts,
+    ignorePattern: /__test__/
   })
 }
 

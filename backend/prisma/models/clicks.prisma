@@ -1,7 +1,10 @@
-model Click { 
-  id        BigInt     @id @default(autoincrement()) 
-  link     Link
+model Click {
+  id        BigInt   @id @default(autoincrement())
+  linkId    String
+  link      Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
   Timestamp DateTime
   ipAddress String
   userAgent String
-} 
+
+  @@map("clicks")
+}
