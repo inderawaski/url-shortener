@@ -1,8 +1,8 @@
 import { test } from 'node:test'
 import * as assert from 'node:assert'
-import type { Link, PrismaClient } from '../../../generated/prisma/client'
-import { SLUG_PATTERN } from '../link.consts'
-import { createLinkService } from '../link.service'
+import type { Link, PrismaClient } from '../../../../generated/prisma/client'
+import { SLUG_PATTERN } from '../links.consts'
+import { createLinkService } from '../links.service'
 
 const baseDate = new Date('2026-01-01T00:00:00.000Z')
 
@@ -72,7 +72,7 @@ test('createLink rejects invalid slug', async () => {
   const service = createLinkService(mockPrisma({}))
   const r = await service.createLink({
     slug: 'x y',
-    destination_url: 'https://a.com'
+    destinationUrl: 'https://a.com'
   })
   assert.deepEqual(r, { code: 'INVALID_SLUG' })
 })
@@ -81,7 +81,7 @@ test('createLink rejects non-http(s) URL', async () => {
   const service = createLinkService(mockPrisma({}))
   const r = await service.createLink({
     slug: 'ok',
-    destination_url: 'ftp://x.com'
+    destinationUrl: 'ftp://x.com'
   })
   assert.deepEqual(r, { code: 'INVALID_DESTINATION_URL' })
 })
@@ -107,14 +107,14 @@ test('createLink persists and returns detail', async () => {
   )
   const r = await service.createLink({
     slug: 's',
-    destination_url: 'https://b.com'
+    destinationUrl: 'https://b.com'
   })
   assert.ok(!('code' in r))
   if ('code' in r) return
   assert.equal(r.slug, 's')
-  assert.equal(r.destination_url, 'https://b.com')
-  assert.equal(r.click_count, 2)
-  assert.equal(r.created_at, baseDate.toISOString())
+  assert.equal(r.destinationUrl, 'https://b.com')
+  assert.equal(r.clickCount, 2)
+  assert.equal(r.createdAt, baseDate.toISOString())
 })
 
 test('createLink maps unique violation to SLUG_TAKEN', async () => {
@@ -128,7 +128,7 @@ test('createLink maps unique violation to SLUG_TAKEN', async () => {
   )
   const r = await service.createLink({
     slug: 'dup',
-    destination_url: 'https://c.com'
+    destinationUrl: 'https://c.com'
   })
   assert.deepEqual(r, { code: 'SLUG_TAKEN' })
 })
@@ -143,7 +143,7 @@ test('updateLink returns NOT_FOUND when slug missing', async () => {
     })
   )
   const r = await service.updateLink('gone', {
-    destination_url: 'https://d.com'
+    destinationUrl: 'https://d.com'
   })
   assert.deepEqual(r, { code: 'NOT_FOUND' })
 })
@@ -163,11 +163,11 @@ test('updateLink returns detail on success', async () => {
     })
   )
   const r = await service.updateLink('x', {
-    destination_url: 'https://new.com'
+    destinationUrl: 'https://new.com'
   })
   assert.ok(!('code' in r))
   if ('code' in r) return
-  assert.equal(r.destination_url, 'https://new.com')
+  assert.equal(r.destinationUrl, 'https://new.com')
 })
 
 test('listLinks maps rows to list shape', async () => {
@@ -189,8 +189,8 @@ test('listLinks maps rows to list shape', async () => {
   assert.deepEqual(list[0], {
     slug: 'a',
     destination: 'https://a.io',
-    click_count: 1,
-    created_at: baseDate.toISOString()
+    clickCount: 1,
+    createdAt: baseDate.toISOString()
   })
 })
 
@@ -217,87 +217,4 @@ test('getLinkDetails returns detail', async () => {
   assert.ok(!('code' in r))
   if ('code' in r) return
   assert.equal(r.slug, 'z')
-})
-
-test('getRedirectBySlug returns null for invalid slug', async () => {
-  const service = createLinkService(mockPrisma({}))
-  const r = await service.getRedirectBySlug('bad slug')
-  assert.equal(r, null)
-})
-
-test('getRedirectBySlug returns null when missing', async () => {
-  const service = createLinkService(
-    mockPrisma({
-      findUnique: async (args: unknown) => {
-        assert.deepEqual((args as { select?: unknown }).select, {
-          id: true,
-          destinationUrl: true
-        })
-        return null
-      }
-    })
-  )
-  const r = await service.getRedirectBySlug('gone')
-  assert.equal(r, null)
-})
-
-test('getRedirectBySlug returns id and destination_url', async () => {
-  const service = createLinkService(
-    mockPrisma({
-      findUnique: async (_args: unknown) =>
-        linkRow({
-          id: 'lid',
-          slug: 's',
-          destinationUrl: 'https://dest.example'
-        })
-    })
-  )
-  const r = await service.getRedirectBySlug('s')
-  assert.deepEqual(r, {
-    id: 'lid',
-    destination_url: 'https://dest.example'
-  })
-})
-
-test('recordClick creates click and increments count', async () => {
-  const calls: unknown[] = []
-  const service = createLinkService(
-    mockPrisma(
-      {
-        update: async (args: unknown) => {
-          calls.push({ kind: 'update', args })
-          return linkRow()
-        }
-      },
-      {
-        click: {
-          create: async (args: unknown) => {
-            calls.push({ kind: 'create', args })
-            return {}
-          }
-        },
-        $transaction: async (arg: unknown) => {
-          const ops = arg as Promise<unknown>[]
-          return Promise.all(ops)
-        }
-      }
-    )
-  )
-  await service.recordClick('lid', {
-    ip_address: '10.0.0.1',
-    user_agent: 'jest'
-  })
-  assert.equal(calls.length, 2)
-  const createCall = calls.find(c => (c as { kind: string }).kind === 'create') as {
-    args: { data: Record<string, unknown> }
-  }
-  assert.deepEqual(createCall.args.data.linkId, 'lid')
-  assert.equal(createCall.args.data.ipAddress, '10.0.0.1')
-  assert.equal(createCall.args.data.userAgent, 'jest')
-  assert.ok(createCall.args.data.Timestamp instanceof Date)
-  const updateCall = calls.find(c => (c as { kind: string }).kind === 'update') as {
-    args: { where: { id: string }; data: { clickCount: { increment: number } } }
-  }
-  assert.deepEqual(updateCall.args.where, { id: 'lid' })
-  assert.deepEqual(updateCall.args.data, { clickCount: { increment: 1 } })
 })

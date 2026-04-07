@@ -1,5 +1,5 @@
-import { createLinkService } from './link.service'
-import type { LinkRoutesOpts } from './link.types'
+import { createLinkService } from './links.service'
+import type { LinkRoutesOpts } from './links.types'
 import { type FastifyPluginAsync, type FastifyReply } from 'fastify'
 
 const linkRoutes: FastifyPluginAsync<LinkRoutesOpts> = async (
@@ -22,10 +22,10 @@ const linkRoutes: FastifyPluginAsync<LinkRoutesOpts> = async (
   }>('/', async (request, reply) => {
     const { slug, destination_url } = request.body ?? {}
     if (slug === undefined || destination_url === undefined) {
-      return sendError(reply, 400, 'slug and destination_url are required')
+      return sendError(reply, 400, 'slug and destinationUrl are required')
     }
 
-    const result = await service.createLink({ slug, destination_url })
+    const result = await service.createLink({ slug, destinationUrl: destination_url })
     if ('code' in result) {
       if (result.code === 'INVALID_SLUG') {
         return sendError(
@@ -38,7 +38,7 @@ const linkRoutes: FastifyPluginAsync<LinkRoutesOpts> = async (
         return sendError(
           reply,
           400,
-          'destination_url must be a valid http(s) URL'
+          'destinationUrl must be a valid http(s) URL'
         )
       }
       if (result.code === 'SLUG_TAKEN') {
@@ -76,11 +76,11 @@ const linkRoutes: FastifyPluginAsync<LinkRoutesOpts> = async (
   }>('/:slug', async (request, reply) => {
     const destination_url = request.body?.destination_url
     if (destination_url === undefined) {
-      return sendError(reply, 400, 'destination_url is required')
+      return sendError(reply, 400, 'destinationUrl is required')
     }
 
     const result = await service.updateLink(request.params.slug, {
-      destination_url
+      destinationUrl: destination_url
     })
     if ('code' in result) {
       if (result.code === 'INVALID_SLUG') {
@@ -94,7 +94,7 @@ const linkRoutes: FastifyPluginAsync<LinkRoutesOpts> = async (
         return sendError(
           reply,
           400,
-          'destination_url must be a valid http(s) URL'
+          'destinationUrl must be a valid http(s) URL'
         )
       }
       if (result.code === 'NOT_FOUND') {

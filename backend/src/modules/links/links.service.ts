@@ -1,13 +1,12 @@
 import type { Link, PrismaClient } from '../../../generated/prisma/client'
-import { SLUG_PATTERN } from './link.consts'
+import { SLUG_PATTERN } from './links.consts'
 import type {
   CreateLinkInput,
   LinkDetail,
   LinkListItem,
   LinkService,
-  RecordClickInput,
   UpdateLinkInput
-} from './link.types'
+} from './links.types'
 
 function assertValidDestinationUrl (url: string): boolean {
   try {
@@ -21,10 +20,10 @@ function assertValidDestinationUrl (url: string): boolean {
 function toDetail (row: Link): LinkDetail {
   return {
     slug: row.slug,
-    destination_url: row.destinationUrl,
-    click_count: row.clickCount,
-    created_at: row.createdAt.toISOString(),
-    updated_at: row.updatedAt.toISOString()
+    destinationUrl: row.destinationUrl,
+    clickCount: row.clickCount,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString()
   }
 }
 
@@ -32,8 +31,8 @@ function toListItem (row: Link): LinkListItem {
   return {
     slug: row.slug,
     destination: row.destinationUrl,
-    click_count: row.clickCount,
-    created_at: row.createdAt.toISOString()
+    clickCount: row.clickCount,
+    createdAt: row.createdAt.toISOString()
   }
 }
 
@@ -43,7 +42,7 @@ export function createLinkService (prisma: PrismaClient): LinkService {
       if (!SLUG_PATTERN.test(input.slug)) {
         return { code: 'INVALID_SLUG' }
       }
-      if (!assertValidDestinationUrl(input.destination_url)) {
+      if (!assertValidDestinationUrl(input.destinationUrl)) {
         return { code: 'INVALID_DESTINATION_URL' }
       }
 
@@ -51,7 +50,7 @@ export function createLinkService (prisma: PrismaClient): LinkService {
         const row = await prisma.link.create({
           data: {
             slug: input.slug,
-            destinationUrl: input.destination_url
+            destinationUrl: input.destinationUrl
           }
         })
         return toDetail(row)
@@ -72,14 +71,14 @@ export function createLinkService (prisma: PrismaClient): LinkService {
       if (!SLUG_PATTERN.test(slug)) {
         return { code: 'INVALID_SLUG' }
       }
-      if (!assertValidDestinationUrl(input.destination_url)) {
+      if (!assertValidDestinationUrl(input.destinationUrl)) {
         return { code: 'INVALID_DESTINATION_URL' }
       }
 
       try {
         const row = await prisma.link.update({
           where: { slug },
-          data: { destinationUrl: input.destination_url }
+          data: { destinationUrl: input.destinationUrl }
         })
         return toDetail(row)
       } catch (e: unknown) {
@@ -111,41 +110,6 @@ export function createLinkService (prisma: PrismaClient): LinkService {
         return { code: 'NOT_FOUND' }
       }
       return toDetail(row)
-    },
-
-    async getRedirectBySlug (slug: string) {
-      if (!SLUG_PATTERN.test(slug)) {
-        return null
-      }
-      const row = await prisma.link.findUnique({
-        where: { slug },
-        select: { id: true, destinationUrl: true }
-      })
-      if (!row) {
-        return null
-      }
-      return {
-        id: row.id,
-        destination_url: row.destinationUrl
-      }
-    },
-
-    async recordClick (linkId: string, meta: RecordClickInput) {
-      const ts = new Date()
-      await prisma.$transaction([
-        prisma.click.create({
-          data: {
-            linkId,
-            Timestamp: ts,
-            ipAddress: meta.ip_address,
-            userAgent: meta.user_agent
-          }
-        }),
-        prisma.link.update({
-          where: { id: linkId },
-          data: { clickCount: { increment: 1 } }
-        })
-      ])
     }
   }
 }

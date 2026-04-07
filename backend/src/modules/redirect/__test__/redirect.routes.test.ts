@@ -2,32 +2,28 @@ import { test } from 'node:test'
 import * as assert from 'node:assert'
 import Fastify from 'fastify'
 import sensible from '@fastify/sensible'
-import type { LinkService, RecordClickInput } from '../../link/link.types'
+import type { RecordClickInput, RedirectService } from '../redirect.types'
 import redirectRoutes from '../redirect.routes'
 
-function stubLinkService (partial: Partial<LinkService>): LinkService {
+function stubRedirectService (partial: Partial<RedirectService>): RedirectService {
   return {
-    createLink: async () => ({ code: 'INVALID_SLUG' }),
-    updateLink: async () => ({ code: 'NOT_FOUND' }),
-    listLinks: async () => [],
-    getLinkDetails: async () => ({ code: 'NOT_FOUND' }),
     getRedirectBySlug: async () => null,
     recordClick: async () => {},
     ...partial
   }
 }
 
-async function build (service: LinkService) {
+async function build (service: RedirectService) {
   const app = Fastify()
   await app.register(sensible)
-  await app.register(redirectRoutes, { linkService: service })
+  await app.register(redirectRoutes, { redirectService: service })
   return app
 }
 
 test('GET /:slug 404 when link missing', async () => {
   let clicks = 0
   const app = await build(
-    stubLinkService({
+    stubRedirectService({
       getRedirectBySlug: async () => null,
       recordClick: async () => {
         clicks += 1
@@ -40,12 +36,12 @@ test('GET /:slug 404 when link missing', async () => {
   await app.close()
 })
 
-test('GET /:slug 302 redirects to destination_url', async () => {
+test('GET /:slug 302 redirects to destinationUrl', async () => {
   const app = await build(
-    stubLinkService({
+    stubRedirectService({
       getRedirectBySlug: async (slug) => {
         assert.equal(slug, 'go')
-        return { id: 'id-1', destination_url: 'https://example.com/path' }
+        return { id: 'id-1', destinationUrl: 'https://example.com/path' }
       },
       recordClick: async () => {}
     })
@@ -62,10 +58,10 @@ test('GET /:slug 302 redirects to destination_url', async () => {
 
 test('GET /:slug responds before recordClick finishes', async () => {
   const app = await build(
-    stubLinkService({
+    stubRedirectService({
       getRedirectBySlug: async () => ({
         id: 'id-1',
-        destination_url: 'https://fast.example'
+        destinationUrl: 'https://fast.example'
       }),
       recordClick: async () => {
         await new Promise<void>(() => {
@@ -79,13 +75,13 @@ test('GET /:slug responds before recordClick finishes', async () => {
   await app.close()
 })
 
-test('GET /:slug passes ip and user-agent to recordClick', async () => {
+test('GET /:slug passes ip and userAgent to recordClick', async () => {
   let captured: RecordClickInput | undefined
   const app = await build(
-    stubLinkService({
+    stubRedirectService({
       getRedirectBySlug: async () => ({
         id: 'link-id',
-        destination_url: 'https://track.example'
+        destinationUrl: 'https://track.example'
       }),
       recordClick: async (_linkId, meta) => {
         captured = meta
@@ -100,8 +96,8 @@ test('GET /:slug passes ip and user-agent to recordClick', async () => {
   assert.equal(res.statusCode, 302)
   await new Promise<void>(r => setImmediate(r))
   assert.ok(captured !== undefined)
-  assert.equal(captured.user_agent, 'MyBot/1.0')
-  assert.equal(typeof captured.ip_address, 'string')
-  assert.ok(captured.ip_address.length > 0)
+  assert.equal(captured.userAgent, 'MyBot/1.0')
+  assert.equal(typeof captured.ipAddress, 'string')
+  assert.ok(captured.ipAddress.length > 0)
   await app.close()
 })

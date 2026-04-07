@@ -3,9 +3,9 @@ import * as assert from 'node:assert'
 import type { Link, PrismaClient } from '../../../../generated/prisma/client'
 import Fastify from 'fastify'
 import sensible from '@fastify/sensible'
-import { createLinkService } from '../link.service'
-import type { LinkService } from '../link.types'
-import linkRoutes from '../link.routes'
+import { createLinkService } from '../links.service'
+import type { LinkService } from '../links.types'
+import linkRoutes from '../links.routes'
 
 const baseDate = new Date('2026-02-01T00:00:00.000Z')
 
@@ -82,7 +82,7 @@ test('POST /links 201 and body', async () => {
   assert.equal(res.statusCode, 201)
   const body = JSON.parse(res.payload)
   assert.equal(body.slug, 'hi')
-  assert.equal(body.destination_url, 'https://ok.com')
+  assert.equal(body.destinationUrl, 'https://ok.com')
   await app.close()
 })
 
@@ -120,11 +120,11 @@ test('GET /links returns links array', async () => {
   assert.equal(res.statusCode, 200)
   const body = JSON.parse(res.payload) as Array<{
     destination: string
-    click_count: number
+    clickCount: number
   }>
   assert.equal(body.length, 1)
   assert.equal(body[0].destination, 'https://s.com')
-  assert.equal(body[0].click_count, 3)
+  assert.equal(body[0].clickCount, 3)
   await app.close()
 })
 
@@ -136,7 +136,7 @@ test('GET /links/:slug 404', async () => {
   await app.close()
 })
 
-test('PATCH /links/:slug 400 without destination_url', async () => {
+test('PATCH /links/:slug 400 without destinationUrl', async () => {
   const service = createLinkService(mockPrisma({}))
   const app = await buildWithService(service)
   const res = await app.inject({
@@ -166,6 +166,6 @@ test('PATCH /links/:slug 200', async () => {
   })
   assert.equal(res.statusCode, 200)
   const body = JSON.parse(res.payload)
-  assert.equal(body.destination_url, 'https://new.net')
+  assert.equal(body.destinationUrl, 'https://new.net')
   await app.close()
 })
