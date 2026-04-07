@@ -1,5 +1,5 @@
 import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '../../generated/prisma/client'
 import '../types/fastify-prisma'
 import fp from 'fastify-plugin'
 import pg from 'pg'

@@ -1,11 +1,11 @@
 import { test } from 'node:test'
 import * as assert from 'node:assert'
-import type { Link, PrismaClient } from '@prisma/client'
+import type { Link, PrismaClient } from '../../../../generated/prisma/client'
 import Fastify from 'fastify'
 import sensible from '@fastify/sensible'
 import { createLinkService } from '../../../link/link.service'
 import type { LinkService } from '../../../link/link.types'
-import linksRoutes from '../index'
+import linksRoutes from '../link.routes'
 
 const baseDate = new Date('2026-02-01T00:00:00.000Z')
 

@@ -33,7 +33,9 @@ const app: FastifyPluginAsync<AppOptions> = async (
   void fastify.register(AutoLoad, {
     dir: join(__dirname, 'routes'),
     options: opts,
-    ignorePattern: /__test__/
+    ignorePattern: /__test__/,
+    dirNameRoutePrefix: (_parent, folderName) =>
+      folderName === 'redirect' ? false : folderName
   })
 }
 

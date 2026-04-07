@@ -28,6 +28,16 @@ export type LinkServiceError =
   | { code: 'SLUG_TAKEN' }
   | { code: 'NOT_FOUND' }
 
+export type RecordClickInput = {
+  ip_address: string
+  user_agent: string
+}
+
+export type RedirectTarget = {
+  id: string
+  destination_url: string
+}
+
 export type LinkService = {
   createLink: (input: CreateLinkInput) => Promise<LinkDetail | LinkServiceError>
   updateLink: (
@@ -36,4 +46,6 @@ export type LinkService = {
   ) => Promise<LinkDetail | LinkServiceError>
   listLinks: () => Promise<LinkListItem[]>
   getLinkDetails: (slug: string) => Promise<LinkDetail | LinkServiceError>
+  getRedirectBySlug: (slug: string) => Promise<RedirectTarget | null>
+  recordClick: (linkId: string, meta: RecordClickInput) => Promise<void>
 }

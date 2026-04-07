@@ -1,10 +1,11 @@
-import type { Link, PrismaClient } from '@prisma/client'
+import type { Link, PrismaClient } from '../../generated/prisma/client'
 import { SLUG_PATTERN } from './link.consts'
 import type {
   CreateLinkInput,
   LinkDetail,
   LinkListItem,
   LinkService,
+  RecordClickInput,
   UpdateLinkInput
 } from './link.types'
 
@@ -110,6 +111,41 @@ export function createLinkService (prisma: PrismaClient): LinkService {
         return { code: 'NOT_FOUND' }
       }
       return toDetail(row)
+    },
+
+    async getRedirectBySlug (slug: string) {
+      if (!SLUG_PATTERN.test(slug)) {
+        return null
+      }
+      const row = await prisma.link.findUnique({
+        where: { slug },
+        select: { id: true, destinationUrl: true }
+      })
+      if (!row) {
+        return null
+      }
+      return {
+        id: row.id,
+        destination_url: row.destinationUrl
+      }
+    },
+
+    async recordClick (linkId: string, meta: RecordClickInput) {
+      const ts = new Date()
+      await prisma.$transaction([
+        prisma.click.create({
+          data: {
+            linkId,
+            Timestamp: ts,
+            ipAddress: meta.ip_address,
+            userAgent: meta.user_agent
+          }
+        }),
+        prisma.link.update({
+          where: { id: linkId },
+          data: { clickCount: { increment: 1 } }
+        })
+      ])
     }
   }
 }
