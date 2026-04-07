@@ -1,4 +1,4 @@
-import type { Link, PrismaClient } from '../../generated/prisma/client'
+import type { Link, PrismaClient } from '../../../generated/prisma/client'
 import { SLUG_PATTERN } from './link.consts'
 import type {
   CreateLinkInput,

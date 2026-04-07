@@ -1,13 +1,8 @@
-import '../../types/fastify-prisma'
-import { createLinkService } from '../../link/link.service'
-import type { LinkService } from '../../link/link.types'
+import { createLinkService } from './link.service'
+import type { LinkRoutesOpts } from './link.types'
 import { type FastifyPluginAsync, type FastifyReply } from 'fastify'
 
-export type LinksRoutesOpts = {
-  linkService?: LinkService
-}
-
-const linksRoutes: FastifyPluginAsync<LinksRoutesOpts> = async (
+const linkRoutes: FastifyPluginAsync<LinkRoutesOpts> = async (
   fastify,
   opts
 ) => {
@@ -110,4 +105,4 @@ const linksRoutes: FastifyPluginAsync<LinksRoutesOpts> = async (
   })
 }
 
-export default linksRoutes
+export default linkRoutes

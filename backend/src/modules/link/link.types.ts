@@ -49,3 +49,7 @@ export type LinkService = {
   getRedirectBySlug: (slug: string) => Promise<RedirectTarget | null>
   recordClick: (linkId: string, meta: RecordClickInput) => Promise<void>
 }
+
+export type LinkRoutesOpts = {
+  linkService?: LinkService
+}

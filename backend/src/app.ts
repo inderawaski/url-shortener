@@ -27,16 +27,16 @@ const app: FastifyPluginAsync<AppOptions> = async (
     options: opts
   })
 
-  // This loads all plugins defined in routes
-  // define your routes in one of these
+  // This loads all plugins defined as *.routes.ts inside modules
   // eslint-disable-next-line no-void
   void fastify.register(AutoLoad, {
-    dir: join(__dirname, 'routes'),
+    dir: join(__dirname, 'modules'),
     options: opts,
-    ignorePattern: /__test__/,
+    ignorePattern: /^(?!.*\.routes\.ts$)/, // only include .routes.ts files
     dirNameRoutePrefix: (_parent, folderName) =>
-      folderName === 'redirect' ? false : folderName
+      folderName === 'redirect' ? false : `internal-api/${folderName}`
   })
+
 }
 
 export default app

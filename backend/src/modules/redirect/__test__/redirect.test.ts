@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import * as assert from 'node:assert'
 import Fastify from 'fastify'
 import sensible from '@fastify/sensible'
-import type { LinkService, RecordClickInput } from '../../../link/link.types'
+import type { LinkService, RecordClickInput } from '../../link/link.types'
 import redirectRoutes from '../redirect.routes'
 
 function stubLinkService (partial: Partial<LinkService>): LinkService {
