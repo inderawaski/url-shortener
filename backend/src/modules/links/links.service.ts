@@ -94,6 +94,27 @@ export function createLinkService (prisma: PrismaClient): LinkService {
       }
     },
 
+    async deleteLink (slug: string) {
+      if (!SLUG_PATTERN.test(slug)) {
+        return { code: 'INVALID_SLUG' }
+      }
+
+      try {
+        await prisma.link.delete({ where: { slug } })
+        return { deleted: true as const }
+      } catch (e: unknown) {
+        if (
+          e !== null &&
+          typeof e === 'object' &&
+          'code' in e &&
+          e.code === 'P2025'
+        ) {
+          return { code: 'NOT_FOUND' }
+        }
+        throw e
+      }
+    },
+
     async listLinks () {
       const rows = await prisma.link.findMany({
         orderBy: { createdAt: 'desc' }

@@ -24,6 +24,7 @@ function linkRow (over: Partial<Link> = {}): Link {
 type LinkClientMock = {
   create?: (args: unknown) => Promise<Link>
   update?: (args: unknown) => Promise<Link>
+  delete?: (args: unknown) => Promise<Link>
   findUnique?: (args: unknown) => Promise<Link | null>
   findMany?: (args: unknown) => Promise<Link[]>
 }
@@ -31,6 +32,7 @@ type LinkClientMock = {
 const prismaLinkDefaults: Required<LinkClientMock> = {
   create: async (_args: unknown) => linkRow(),
   update: async (_args: unknown) => linkRow(),
+  delete: async (_args: unknown) => linkRow(),
   findUnique: async (_args: unknown) => null,
   findMany: async (_args: unknown) => []
 }
@@ -167,5 +169,39 @@ test('PATCH /links/:slug 200', async () => {
   assert.equal(res.statusCode, 200)
   const body = JSON.parse(res.payload)
   assert.equal(body.destinationUrl, 'https://new.net')
+  await app.close()
+})
+
+test('DELETE /links/:slug 200', async () => {
+  const service = createLinkService(
+    mockPrisma({
+      delete: async (_args: unknown) => linkRow({ slug: 'x' })
+    })
+  )
+  const app = await buildWithService(service)
+  const res = await app.inject({
+    method: 'DELETE',
+    url: '/links/x'
+  })
+  assert.equal(res.statusCode, 200)
+  const body = JSON.parse(res.payload)
+  assert.deepEqual(body, { deleted: true })
+  await app.close()
+})
+
+test('DELETE /links/:slug 404 when missing', async () => {
+  const service = createLinkService(
+    mockPrisma({
+      delete: async (_args: unknown) => {
+        throw Object.assign(new Error('nf'), { code: 'P2025' })
+      }
+    })
+  )
+  const app = await buildWithService(service)
+  const res = await app.inject({
+    method: 'DELETE',
+    url: '/links/missing'
+  })
+  assert.equal(res.statusCode, 404)
   await app.close()
 })

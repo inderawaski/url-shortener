@@ -21,6 +21,7 @@ function linkRow (over: Partial<Link> = {}): Link {
 type LinkClientMock = {
   create?: (args: unknown) => Promise<Link>
   update?: (args: unknown) => Promise<Link>
+  delete?: (args: unknown) => Promise<Link>
   findUnique?: (args: unknown) => Promise<Link | null>
   findMany?: (args: unknown) => Promise<Link[]>
 }
@@ -32,6 +33,7 @@ type ClickClientMock = {
 const prismaLinkDefaults: Required<LinkClientMock> = {
   create: async (_args: unknown) => linkRow(),
   update: async (_args: unknown) => linkRow(),
+  delete: async (_args: unknown) => linkRow(),
   findUnique: async (_args: unknown) => null,
   findMany: async (_args: unknown) => []
 }
@@ -192,6 +194,38 @@ test('listLinks maps rows to list shape', async () => {
     clickCount: 1,
     createdAt: baseDate.toISOString()
   })
+})
+
+test('deleteLink returns INVALID_SLUG for bad slug', async () => {
+  const service = createLinkService(mockPrisma({}))
+  const r = await service.deleteLink('bad slug')
+  assert.deepEqual(r, { code: 'INVALID_SLUG' })
+})
+
+test('deleteLink returns NOT_FOUND when slug missing', async () => {
+  const notFound = Object.assign(new Error('nf'), { code: 'P2025' })
+  const service = createLinkService(
+    mockPrisma({
+      delete: async (_args: unknown) => {
+        throw notFound
+      }
+    })
+  )
+  const r = await service.deleteLink('gone')
+  assert.deepEqual(r, { code: 'NOT_FOUND' })
+})
+
+test('deleteLink returns deleted true on success', async () => {
+  const service = createLinkService(
+    mockPrisma({
+      delete: async (args: unknown) => {
+        assert.equal((args as { where: { slug: string } }).where.slug, 'abc')
+        return linkRow({ slug: 'abc' })
+      }
+    })
+  )
+  const r = await service.deleteLink('abc')
+  assert.deepEqual(r, { deleted: true })
 })
 
 test('getLinkDetails returns NOT_FOUND', async () => {

@@ -34,6 +34,7 @@ export type LinkService = {
     slug: string,
     input: UpdateLinkInput
   ) => Promise<LinkDetail | LinkServiceError>
+  deleteLink: (slug: string) => Promise<{ deleted: true } | LinkServiceError>
   listLinks: () => Promise<LinkListItem[]>
   getLinkDetails: (slug: string) => Promise<LinkDetail | LinkServiceError>
 }
