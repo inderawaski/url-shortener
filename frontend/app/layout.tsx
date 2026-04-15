@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "URL Shortener Dashboard",
-  description: "Manage short links and destinations",
+  title: "URL Shortener",
+  description: "Create friendly short URLs and send people exactly where you intend.",
 };
 
 export default function RootLayout({

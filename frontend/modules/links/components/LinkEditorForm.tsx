@@ -21,6 +21,7 @@ type LinkEditorFormProps = {
 
 export function LinkEditorForm({ mode, slug, destinationUrl }: LinkEditorFormProps) {
   const serverAction = mode === "edit" ? updateLinkAction : createLinkAction;
+  const isEditMode = mode === "edit";
   const [state, action] = useActionState<LinkActionState, FormData>(
     serverAction,
     { error: null }
@@ -28,23 +29,30 @@ export function LinkEditorForm({ mode, slug, destinationUrl }: LinkEditorFormPro
 
   return (
     <form action={action} className="space-y-4">
+      {isEditMode ? <input type="hidden" name="slug" value={slug} /> : null}
       <div className="space-y-2">
-        <Label htmlFor="slug">Slug</Label>
+        <Label htmlFor="slug">Short name</Label>
         <Input
           id="slug"
-          name="slug"
+          name={isEditMode ? undefined : "slug"}
           placeholder="summer-sale-2026"
           defaultValue={slug}
-          readOnly={mode === "edit"}
+          readOnly={isEditMode}
+          disabled={isEditMode}
+          className={
+            isEditMode
+              ? "cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-500 opacity-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
+              : undefined
+          }
           aria-describedby="slug-help"
         />
         <p id="slug-help" className="text-xs text-zinc-500 dark:text-zinc-400">
-          Allowed characters: letters, numbers, hyphens, and underscores.
+          Letters, numbers, hyphens, and underscores—whatever feels easy to say out loud.
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="destination_url">Destination URL</Label>
+        <Label htmlFor="destination_url">Where it should go</Label>
         <Input
           id="destination_url"
           name="destination_url"
@@ -54,7 +62,7 @@ export function LinkEditorForm({ mode, slug, destinationUrl }: LinkEditorFormPro
           aria-describedby="destination-help"
         />
         <p id="destination-help" className="text-xs text-zinc-500 dark:text-zinc-400">
-          Destination should include protocol.
+          Paste the full address, including https:// or http://.
         </p>
       </div>
 
@@ -74,7 +82,7 @@ export function LinkEditorForm({ mode, slug, destinationUrl }: LinkEditorFormPro
         {mode === "edit" ? (
           <SubmitButton idleLabel="Save Changes" pendingLabel="Saving..." />
         ) : (
-          <SubmitButton idleLabel="Create Link" pendingLabel="Creating..." />
+          <SubmitButton idleLabel="Create link" pendingLabel="Creating..." />
         )}
       </div>
     </form>

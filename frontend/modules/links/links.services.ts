@@ -14,15 +14,15 @@ async function requestBackend<T>(config: {
   method?: "GET" | "POST" | "PATCH" | "DELETE";
   body?: unknown;
 }) {
+  const hasBody = config.body !== undefined;
+
   try {
     const response = await axios.request<T>({
       baseURL: getPublicBackendBaseUrl(),
       url: config.path,
       method: config.method ?? "GET",
       data: config.body,
-      headers: {
-        "content-type": "application/json",
-      },
+      headers: hasBody ? { "content-type": "application/json" } : undefined,
     });
     return response.data;
   } catch (error) {

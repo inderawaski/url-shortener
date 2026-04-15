@@ -10,24 +10,24 @@ export function validateLinkInput(input: {
   requireSlug: boolean;
 }) {
   if (input.requireSlug && !input.slug) {
-    return "Slug is required.";
+    return "Add a short name for your link.";
   }
 
   if (input.requireSlug && !SLUG_PATTERN.test(input.slug)) {
-    return "Slug can only include letters, numbers, hyphens, and underscores.";
+    return "Short names can use letters, numbers, hyphens, and underscores.";
   }
 
   if (!input.destinationUrl) {
-    return "Destination URL is required.";
+    return "Add the page you want this link to open.";
   }
 
   try {
     const parsed = new URL(input.destinationUrl);
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return "Destination URL must start with http:// or https://.";
+      return "Start the address with http:// or https://.";
     }
   } catch {
-    return "Destination URL must be a valid URL.";
+    return "That doesn't look like a valid web address.";
   }
 
   return null;

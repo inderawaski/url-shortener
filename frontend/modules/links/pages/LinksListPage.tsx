@@ -1,11 +1,10 @@
 import Link from "next/link";
 
-import { deleteLinkAction } from "@/modules/links/links.actions";
+import { LinksListTable } from "@/modules/links/components/LinksListTable";
 import { listLinks } from "@/modules/links/links.services";
-import { formatDate, getPublicBackendBaseUrl } from "@/modules/links/links.utils";
+import { getPublicBackendBaseUrl } from "@/modules/links/links.utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type LinksListPageProps = {
   errorMessage?: string;
@@ -20,13 +19,14 @@ export async function LinksListPage({ errorMessage }: LinksListPageProps) {
       <section className="mx-auto w-full max-w-6xl space-y-6">
         <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight">URL Shortener Dashboard</h1>
+            <h1 className="text-3xl font-semibold tracking-tight">URL Shortener</h1>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              Manage short links, update destinations, and remove outdated entries.
+              Share something short, point it somewhere new when plans change, and retire what you
+              no longer need.
             </p>
           </div>
           <Button asChild>
-            <Link href="/links/new">Add New Link</Link>
+            <Link href="/links/new">New Link</Link>
           </Button>
         </header>
 
@@ -41,65 +41,28 @@ export async function LinksListPage({ errorMessage }: LinksListPageProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Existing Links</CardTitle>
+            <CardTitle>Links</CardTitle>
             <CardDescription>
-              Minimal list view with slug, destination, click count, and creation date.
+              Tap a short URL to open it—clicks and dates are here when you want the story behind the
+              numbers.
             </CardDescription>
           </CardHeader>
           <CardContent>
             {links.length === 0 ? (
               <div className="space-y-3">
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  No links yet. Create your first short URL to get started.
+                  No links yet. Add a short link and it&apos;ll show up in this list.
                 </p>
-                <Button asChild variant="outline">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="border-zinc-200 bg-white text-zinc-950 shadow-sm hover:bg-zinc-100 dark:border-zinc-700 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+                >
                   <Link href="/links/new">Create Link</Link>
                 </Button>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Short URL</TableHead>
-                    <TableHead>Destination</TableHead>
-                    <TableHead>Clicks</TableHead>
-                    <TableHead>Created At</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {links.map((link) => (
-                    <TableRow key={link.slug}>
-                      <TableCell className="font-medium">
-                        <a
-                          href={`${backendBaseUrl}/${link.slug}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-700 hover:underline dark:text-blue-300"
-                        >
-                          {backendBaseUrl}/{link.slug}
-                        </a>
-                      </TableCell>
-                      <TableCell className="max-w-[350px] truncate">{link.destination}</TableCell>
-                      <TableCell>{link.clickCount}</TableCell>
-                      <TableCell>{formatDate(link.createdAt)}</TableCell>
-                      <TableCell>
-                        <div className="flex justify-end gap-2">
-                          <Button asChild variant="outline" size="sm">
-                            <Link href={`/links/${link.slug}/edit`}>Edit</Link>
-                          </Button>
-                          <form action={deleteLinkAction}>
-                            <input type="hidden" name="slug" value={link.slug} />
-                            <Button variant="destructive" size="sm" type="submit">
-                              Delete
-                            </Button>
-                          </form>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <LinksListTable links={links} backendBaseUrl={backendBaseUrl} />
             )}
           </CardContent>
         </Card>
